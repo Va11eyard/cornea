@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Система заявок на донорскую роговицу{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if request.session.get('user') %}
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="4"/>
+                <line x1="12" y1="2" x2="12" y2="6"/>
+                <line x1="12" y1="18" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="6" y2="12"/>
+                <line x1="18" y1="12" x2="22" y2="12"/>
+            </svg>
+            <span>Роговица</span>
+        </div>
+        <div class="navbar-links">
+            {% if request.session.get('user', {}).get('role') == 'admin' %}
+                <a href="/admin" class="nav-link {% if request.url.path.startswith('/admin') and not request.url.path.startswith('/admin/users') and not request.url.path.startswith('/admin/options') %}active{% endif %}">Заявки</a>
+                <a href="/admin/users" class="nav-link {% if request.url.path.startswith('/admin/users') %}active{% endif %}">Врачи</a>
+                <a href="/admin/options" class="nav-link {% if request.url.path.startswith('/admin/options') %}active{% endif %}">Настройки</a>
+            {% else %}
+                <a href="/doctor/dashboard" class="nav-link {% if request.url.path == '/doctor/dashboard' %}active{% endif %}">Мои заявки</a>
+                <a href="/doctor/new-request" class="nav-link {% if request.url.path == '/doctor/new-request' %}active{% endif %}">Новая заявка</a>
+            {% endif %}
+        </div>
+        <div class="navbar-user">
+            <span class="user-name">{{ request.session.get('user', {}).get('full_name', '') }}</span>
+            <a href="/logout" class="btn-logout">Выйти</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="{% if request.session.get('user') %}with-nav{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

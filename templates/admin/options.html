@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Настройки{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Настройки</h1>
+        <p class="page-subtitle">Варианты обработки тканей</p>
+    </div>
+</div>
+
+<div class="two-col-layout">
+    <div class="main-col">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Вариант обработки</th>
+                        <th>Статус</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for opt in options %}
+                    <tr>
+                        <td>{{ opt.label }}</td>
+                        <td><span class="badge {% if opt.is_active %}badge-active{% else %}badge-inactive{% endif %}">{% if opt.is_active %}Активен{% else %}Неактивен{% endif %}</span></td>
+                        <td>
+                            <form method="post" action="/admin/options/{{ opt.id }}/delete" onsubmit="return confirm('Удалить?')" style="display:inline;">
+                                <button type="submit" class="link link-danger">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="side-col">
+        <div class="form-card">
+            <h2 class="form-card-title">Добавить вариант</h2>
+            <form method="post" action="/admin/options/add">
+                <div class="form-group">
+                    <label class="form-label">Название <span class="required">*</span></label>
+                    <input type="text" name="label" class="form-input" placeholder="Например: DMEK" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Добавить</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

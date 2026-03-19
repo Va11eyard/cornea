@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Заявка #{{ req.id }} — Админ{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Заявка #{{ req.id }}</h1>
+        <p class="page-subtitle">Создана: {{ req.created_at[:16] }} &nbsp;·&nbsp; Обновлена: {{ req.updated_at[:16] }}</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <button onclick="copyRequest()" class="btn btn-ghost" id="copy-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Скопировать заявку
+        </button>
+        <a href="/admin" class="btn btn-ghost">← Назад</a>
+    </div>
+</div>
+
+{% if request.query_params.get('updated') %}
+<div class="alert alert-success">Статус обновлён.</div>
+{% endif %}
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3 class="detail-section-title">Статус заявки</h3>
+        <form method="post" action="/admin/request/{{ req.id }}/status" class="status-form">
+            <div style="display:flex;gap:8px;align-items:center;">
+                <select name="status" class="form-select">
+                    <option value="новая" {% if req.status == 'новая' %}selected{% endif %}>Новая</option>
+                    <option value="отправлена" {% if req.status == 'отправлена' %}selected{% endif %}>Отправлена</option>
+                    <option value="выполнена" {% if req.status == 'выполнена' %}selected{% endif %}>Выполнена</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+        </form>
+        <div style="margin-top:16px;">
+            <form method="post" action="/admin/request/{{ req.id }}/delete" onsubmit="return confirm('Удалить заявку #{{ req.id }}?')">
+                <button type="submit" class="btn btn-danger">Удалить заявку</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h3 class="detail-section-title">Врач и пациент</h3>
+        <dl class="detail-list">
+            <dt>Аккаунт врача</dt><dd>{{ req.user_full_name }}</dd>
+            <dt>Код пациента</dt><dd>{{ req.patient_code or '—' }}</dd>
+            <dt>Клиника</dt><dd>{{ req.clinic or '—' }}</dd>
+            <dt>ФИО врача</dt><dd>{{ req.doctor_name or '—' }}</dd>
+            <dt>Email</dt><dd>{{ req.doctor_email or '—' }}</dd>
+            <dt>Телефон</dt><dd>{{ req.doctor_phone or '—' }}</dd>
+        </dl>
+    </div>
+
+    <div class="detail-card">
+        <h3 class="detail-section-title">Предпочтения тканей</h3>
+        <dl class="detail-list">
+            <dt>Количество роговиц</dt><dd>{{ req.cornea_count }}</dd>
+            <dt>Мин. количество клеток</dt><dd>{{ req.min_cell_count }}</dd>
+            <dt>Макс. возраст донора</dt><dd>{{ req.max_donor_age or '—' }}</dd>
+            <dt>Макс. дней с момента смерти</dt><dd>{{ req.max_days_since_death or '—' }}</dd>
+            <dt>Амфотерицин B</dt><dd>{{ req.amphoterycin_b }}</dd>
+            <dt>Обработка тканей</dt><dd>{{ req.tissue_processing or '—' }}</dd>
+            <dt>Доп. обработка</dt><dd>{{ req.additional_processing or '—' }}</dd>
+            <dt>Оптически ясный диаметр</dt><dd>{% if req.optical_diameter %}{{ req.optical_diameter }} мм{% else %}—{% endif %}</dd>
+            <dt>Ткань необходима до</dt>
+            <dd>{% if req.is_urgent %}<span class="badge badge-urgent">СРОЧНО (ASAP)</span>{% elif req.needed_before %}{{ req.needed_before }}{% else %}—{% endif %}</dd>
+        </dl>
+    </div>
+
+    <div class="detail-card detail-card-full">
+        <h3 class="detail-section-title">Комментарии</h3>
+        <p class="detail-comments">{{ req.comments or '—' }}</p>
+    </div>
+</div>
+
+<!-- Hidden copy block -->
+<textarea id="copy-data" style="position:absolute;left:-9999px;top:-9999px;" readonly>ЗАЯВКА #{{ req.id }} — {{ req.created_at[:16] }}
+========================================
+ВРАЧ И ПАЦИЕНТ
+Аккаунт врача: {{ req.user_full_name }}
+Код пациента: {{ req.patient_code or '—' }}
+Клиника: {{ req.clinic or '—' }}
+ФИО врача: {{ req.doctor_name or '—' }}
+Email: {{ req.doctor_email or '—' }}
+Телефон: {{ req.doctor_phone or '—' }}
+
+ПРЕДПОЧТЕНИЯ ТКАНЕЙ
+Количество роговиц: {{ req.cornea_count }}
+Минимальное количество клеток: {{ req.min_cell_count }}
+Максимальный возраст донора: {{ req.max_donor_age or '—' }}
+Максимальное дней с момента смерти (DOD): {{ req.max_days_since_death or '—' }}
+Амфотерицин B: {{ req.amphoterycin_b }}
+Требуется обработка тканей: {{ req.tissue_processing or '—' }}
+Запрос на дополнительную обработку: {{ req.additional_processing or '—' }}
+Оптически ясный диаметр: {% if req.optical_diameter %}{{ req.optical_diameter }} мм{% else %}—{% endif %}
+Ткань необходима до: {% if req.is_urgent %}СРОЧНО (ASAP){% elif req.needed_before %}{{ req.needed_before }}{% else %}—{% endif %}
+
+КОММЕНТАРИИ
+{{ req.comments or '—' }}
+========================================</textarea>
+
+<script>
+function copyRequest() {
+    const ta = document.getElementById('copy-data');
+    ta.select();
+    document.execCommand('copy');
+    const btn = document.getElementById('copy-btn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Скопировано!';
+    btn.classList.add('btn-success');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('btn-success'); }, 2000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Новая заявка{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Новая заявка</h1>
+        <p class="page-subtitle">Запрос на донорскую роговицу</p>
+    </div>
+    <a href="/doctor/dashboard" class="btn btn-ghost">← Назад</a>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form method="post" action="/doctor/new-request" class="request-form">
+
+    <!-- Дополнительная информация о враче / пациенте -->
+    <div class="form-section">
+        <h2 class="section-title">Информация о враче и пациенте</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Код пациента</label>
+                <input type="text" name="patient_code" class="form-input" placeholder="Код пациента (без ФИО)" value="{{ form_data.get('patient_code', '') }}">
+                <span class="form-hint">ФИО пациента не хранится в системе</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Клиника <span class="required">*</span></label>
+                <input type="text" name="clinic" class="form-input" placeholder="Название клиники" value="{{ form_data.get('clinic', user.clinic) }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">ФИО врача</label>
+                <input type="text" name="doctor_name" class="form-input" placeholder="Фамилия Имя Отчество" value="{{ form_data.get('doctor_name', user.full_name) }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email врача</label>
+                <input type="email" name="doctor_email" class="form-input" placeholder="email@clinic.kz" value="{{ form_data.get('doctor_email', user.email) }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Контактный телефон</label>
+                <input type="tel" name="doctor_phone" class="form-input" placeholder="+7 (xxx) xxx-xx-xx" value="{{ form_data.get('doctor_phone', user.phone) }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок 1: Предпочтения тканей -->
+    <div class="form-section">
+        <h2 class="section-title">Блок 1. Предпочтения тканей</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Количество роговиц <span class="required">*</span></label>
+                <input type="number" name="cornea_count" class="form-input" min="1" value="{{ form_data.get('cornea_count', 1) }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Минимальное количество клеток <span class="required">*</span></label>
+                <input type="number" name="min_cell_count" class="form-input" min="2000" value="{{ form_data.get('min_cell_count', 2000) }}" required>
+                <span class="form-hint">Минимальное значение: 2000</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Максимальный возраст донора</label>
+                <input type="number" name="max_donor_age" class="form-input" min="0" max="120" placeholder="лет" value="{{ form_data.get('max_donor_age', '') }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Максимальное дней с момента смерти (DOD)</label>
+                <input type="number" name="max_days_since_death" class="form-input" min="0" placeholder="дней" value="{{ form_data.get('max_days_since_death', '') }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Амфотерицин B</label>
+                <select name="amphoterycin_b" class="form-select">
+                    <option value="Нет" {% if form_data.get('amphoterycin_b', 'Нет') == 'Нет' %}selected{% endif %}>Нет</option>
+                    <option value="Да" {% if form_data.get('amphoterycin_b') == 'Да' %}selected{% endif %}>Да</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Требуется обработка тканей</label>
+                <select name="tissue_processing" class="form-select">
+                    <option value="">— Не выбрано —</option>
+                    {% for opt in processing_options %}
+                    <option value="{{ opt.label }}" {% if form_data.get('tissue_processing') == opt.label %}selected{% endif %}>{{ opt.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Запрос на дополнительную обработку</label>
+                <select name="additional_processing" class="form-select">
+                    <option value="">— Не выбрано —</option>
+                    {% for opt in processing_options %}
+                    <option value="{{ opt.label }}" {% if form_data.get('additional_processing') == opt.label %}selected{% endif %}>{{ opt.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Оптически ясный диаметр (мм)</label>
+                <input type="number" name="optical_diameter" class="form-input" min="6" step="0.1" placeholder="мм (не менее 6)" value="{{ form_data.get('optical_diameter', '') }}">
+                <span class="form-hint">Минимальное значение: 6 мм</span>
+            </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 0;">
+            <div class="form-group">
+                <label class="form-label">Ткань необходима до</label>
+                <input type="date" name="needed_before" id="needed_before" class="form-input" min="{{ today }}" value="{{ form_data.get('needed_before', '') }}" {% if form_data.get('is_urgent') %}disabled{% endif %}>
+            </div>
+            <div class="form-group form-group-center">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_urgent" value="1" id="is_urgent_check" {% if form_data.get('is_urgent') %}checked{% endif %} onchange="toggleUrgent(this)">
+                    <span class="checkbox-custom"></span>
+                    <span>Срочно (ASAP)</span>
+                </label>
+                <span class="form-hint">При отметке дата не обязательна</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок 2: Дополнительная информация -->
+    <div class="form-section">
+        <h2 class="section-title">Блок 2. Дополнительная информация</h2>
+        <div class="form-group">
+            <label class="form-label">Дополнительные критерии / комментарии <span class="required">*</span></label>
+            <textarea name="comments" class="form-textarea" rows="5" placeholder="Укажите клинику, адрес и дату планируемой операции." required>{{ form_data.get('comments', '') }}</textarea>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="/doctor/dashboard" class="btn btn-ghost">Отмена</a>
+        <button type="submit" class="btn btn-primary">Отправить заявку</button>
+    </div>
+</form>
+
+<script>
+function toggleUrgent(cb) {
+    const dateField = document.getElementById('needed_before');
+    dateField.disabled = cb.checked;
+    if (cb.checked) dateField.value = '';
+}
+</script>
+{% endblock %}

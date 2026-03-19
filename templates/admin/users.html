@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Управление врачами{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Врачи</h1>
+        <p class="page-subtitle">Управление учётными записями врачей</p>
+    </div>
+</div>
+
+{% if request.query_params.get('created') %}
+<div class="alert alert-success">Пользователь создан.</div>
+{% endif %}
+{% if request.query_params.get('deleted') %}
+<div class="alert alert-success">Пользователь удалён.</div>
+{% endif %}
+
+<div class="two-col-layout">
+    <div class="main-col">
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Логин</th>
+                        <th>ФИО</th>
+                        <th>Клиника</th>
+                        <th>Email</th>
+                        <th>Роль</th>
+                        <th>Дата создания</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="td-mono">{{ u.username }}</td>
+                        <td>{{ u.full_name or '—' }}</td>
+                        <td>{{ u.clinic or '—' }}</td>
+                        <td>{{ u.email or '—' }}</td>
+                        <td><span class="badge {% if u.role == 'admin' %}badge-admin{% else %}badge-doctor{% endif %}">{{ u.role }}</span></td>
+                        <td>{{ u.created_at[:10] }}</td>
+                        <td>
+                            {% if u.role != 'admin' %}
+                            <form method="post" action="/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Удалить пользователя {{ u.username }}?')" style="display:inline;">
+                                <button type="submit" class="link link-danger">Удалить</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="side-col">
+        <div class="form-card">
+            <h2 class="form-card-title">Добавить врача</h2>
+            <form method="post" action="/admin/users/create">
+                <div class="form-group">
+                    <label class="form-label">Логин <span class="required">*</span></label>
+                    <input type="text" name="username" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль <span class="required">*</span></label>
+                    <input type="text" name="password" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ФИО</label>
+                    <input type="text" name="full_name" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Клиника</label>
+                    <input type="text" name="clinic" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Телефон</label>
+                    <input type="tel" name="phone" class="form-input">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Создать</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

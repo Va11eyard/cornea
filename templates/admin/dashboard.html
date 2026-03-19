@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Административная панель{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Все заявки</h1>
+        <p class="page-subtitle">Управление заявками на донорскую роговицу</p>
+    </div>
+    <a href="/admin/export/excel" class="btn btn-ghost">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Скачать CSV
+    </a>
+</div>
+
+{% if request.query_params.get('deleted') %}
+<div class="alert alert-success">Заявка удалена.</div>
+{% endif %}
+
+<div class="filters-bar">
+    <form method="get" action="/admin" class="filters-form">
+        <input type="text" name="search" class="form-input form-input-sm" placeholder="Поиск по коду, клинике, врачу..." value="{{ search }}">
+        <select name="status" class="form-select form-select-sm">
+            <option value="">Все статусы</option>
+            <option value="новая" {% if status_filter == 'новая' %}selected{% endif %}>Новая</option>
+            <option value="отправлена" {% if status_filter == 'отправлена' %}selected{% endif %}>Отправлена</option>
+            <option value="выполнена" {% if status_filter == 'выполнена' %}selected{% endif %}>Выполнена</option>
+        </select>
+        <button type="submit" class="btn btn-ghost">Применить</button>
+        {% if search or status_filter %}
+        <a href="/admin" class="btn btn-ghost">Сбросить</a>
+        {% endif %}
+    </form>
+    <span class="results-count">{{ requests|length }} заявок</span>
+</div>
+
+{% if requests %}
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Дата</th>
+                <th>Врач</th>
+                <th>Клиника</th>
+                <th>Кол-во роговиц</th>
+                <th>Дата операции</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td class="td-mono">{{ req.id }}</td>
+                <td>{{ req.created_at[:10] }}</td>
+                <td>{{ req.user_full_name or req.username }}</td>
+                <td>{{ req.clinic or '—' }}</td>
+                <td>{{ req.cornea_count }}</td>
+                <td>
+                    {% if req.is_urgent %}<span class="badge badge-urgent">СРОЧНО</span>
+                    {% elif req.needed_before %}{{ req.needed_before }}
+                    {% else %}—{% endif %}
+                </td>
+                <td><span class="badge badge-{{ req.status }}">{{ req.status }}</span></td>
+                <td><a href="/admin/request/{{ req.id }}" class="link">Открыть</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <p>Заявок не найдено</p>
+</div>
+{% endif %}
+{% endblock %}

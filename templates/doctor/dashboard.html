@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Мои заявки{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Мои заявки</h1>
+        <p class="page-subtitle">Список ваших заявок на донорскую роговицу</p>
+    </div>
+    <a href="/doctor/new-request" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Новая заявка
+    </a>
+</div>
+
+{% if request.query_params.get('success') %}
+<div class="alert alert-success">Заявка успешно отправлена!</div>
+{% endif %}
+
+{% if requests %}
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Дата</th>
+                <th>Клиника</th>
+                <th>Код пациента</th>
+                <th>Кол-во роговиц</th>
+                <th>Дата операции</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td class="td-mono">{{ req.id }}</td>
+                <td>{{ req.created_at[:10] }}</td>
+                <td>{{ req.clinic or '—' }}</td>
+                <td class="td-mono">{{ req.patient_code or '—' }}</td>
+                <td>{{ req.cornea_count }}</td>
+                <td>
+                    {% if req.is_urgent %}
+                        <span class="badge badge-urgent">СРОЧНО</span>
+                    {% elif req.needed_before %}
+                        {{ req.needed_before }}
+                    {% else %}—{% endif %}
+                </td>
+                <td><span class="badge badge-{{ req.status }}">{{ req.status }}</span></td>
+                <td><a href="/doctor/request/{{ req.id }}" class="link">Открыть</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/>
+        <line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+    <p>У вас пока нет заявок</p>
+    <a href="/doctor/new-request" class="btn btn-primary">Создать первую заявку</a>
+</div>
+{% endif %}
+{% endblock %}

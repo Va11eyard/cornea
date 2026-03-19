@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Заявка #{{ req.id }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Заявка #{{ req.id }}</h1>
+        <p class="page-subtitle">Создана: {{ req.created_at[:16] }} &nbsp;·&nbsp; <span class="badge badge-{{ req.status }}">{{ req.status }}</span></p>
+    </div>
+    <a href="/doctor/dashboard" class="btn btn-ghost">← Назад</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3 class="detail-section-title">Врач и пациент</h3>
+        <dl class="detail-list">
+            <dt>Код пациента</dt><dd>{{ req.patient_code or '—' }}</dd>
+            <dt>Клиника</dt><dd>{{ req.clinic or '—' }}</dd>
+            <dt>ФИО врача</dt><dd>{{ req.doctor_name or '—' }}</dd>
+            <dt>Email</dt><dd>{{ req.doctor_email or '—' }}</dd>
+            <dt>Телефон</dt><dd>{{ req.doctor_phone or '—' }}</dd>
+        </dl>
+    </div>
+
+    <div class="detail-card">
+        <h3 class="detail-section-title">Предпочтения тканей</h3>
+        <dl class="detail-list">
+            <dt>Количество роговиц</dt><dd>{{ req.cornea_count }}</dd>
+            <dt>Мин. количество клеток</dt><dd>{{ req.min_cell_count }}</dd>
+            <dt>Макс. возраст донора</dt><dd>{{ req.max_donor_age or '—' }}</dd>
+            <dt>Макс. дней с момента смерти</dt><dd>{{ req.max_days_since_death or '—' }}</dd>
+            <dt>Амфотерицин B</dt><dd>{{ req.amphoterycin_b }}</dd>
+            <dt>Обработка тканей</dt><dd>{{ req.tissue_processing or '—' }}</dd>
+            <dt>Доп. обработка</dt><dd>{{ req.additional_processing or '—' }}</dd>
+            <dt>Оптически ясный диаметр</dt><dd>{% if req.optical_diameter %}{{ req.optical_diameter }} мм{% else %}—{% endif %}</dd>
+            <dt>Ткань необходима до</dt>
+            <dd>{% if req.is_urgent %}<span class="badge badge-urgent">СРОЧНО (ASAP)</span>{% elif req.needed_before %}{{ req.needed_before }}{% else %}—{% endif %}</dd>
+        </dl>
+    </div>
+
+    <div class="detail-card detail-card-full">
+        <h3 class="detail-section-title">Комментарии</h3>
+        <p class="detail-comments">{{ req.comments or '—' }}</p>
+    </div>
+</div>
+{% endblock %}
