@@ -68,13 +68,30 @@ def init_db():
         )
     """)
 
-    # Create default admin
-    admin_exists = c.execute("SELECT id FROM users WHERE username = 'admin'").fetchone()
-    if not admin_exists:
-        c.execute("""
+    # Администратор: логин admin_cornea; хеш от пароля (plaintext не храним в репозитории)
+    admin_username = "admin_cornea"
+    admin_password_hash = "8a457efec69caf4f1bc4d56df622eb4d53327d6af14b5bbeebbd37c59b8049f9"
+
+    c.execute(
+        """
+        UPDATE users SET username = ?, password_hash = ?, role = 'admin'
+        WHERE username = 'admin'
+        """,
+        (admin_username, admin_password_hash),
+    )
+    if not c.execute("SELECT id FROM users WHERE username = ?", (admin_username,)).fetchone():
+        c.execute(
+            """
             INSERT INTO users (username, password_hash, role, full_name)
             VALUES (?, ?, 'admin', 'Администратор')
-        """, ('admin', hash_password('admin123')))
+            """,
+            (admin_username, admin_password_hash),
+        )
+    else:
+        c.execute(
+            "UPDATE users SET password_hash = ?, role = 'admin' WHERE username = ?",
+            (admin_password_hash, admin_username),
+        )
 
     # Default tissue processing options
     opts = c.execute("SELECT COUNT(*) FROM tissue_processing_options").fetchone()[0]
