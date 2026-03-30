@@ -38,7 +38,8 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Контактный телефон</label>
-                <input type="tel" name="doctor_phone" class="form-input" placeholder="+7 (xxx) xxx-xx-xx" value="{{ form_data.get('doctor_phone', user.phone) }}">
+                <input type="tel" name="doctor_phone" class="form-input" placeholder="+7 (700) 123-45-67" value="{{ form_data.get('doctor_phone', user.phone) }}" inputmode="tel" autocomplete="tel">
+                <span class="form-hint">Если указан: +7 или 8, затем 10 цифр (можно со скобками и дефисами). Пустое поле — без проверки.</span>
             </div>
         </div>
     </div>

@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional
 from database import get_db
 from datetime import date
+from phone_validation import normalize_kz_ru_phone
 
 router = APIRouter(prefix="/doctor")
 templates = Jinja2Templates(directory="templates")
@@ -102,6 +103,10 @@ async def create_request(
         errors.append("Количество роговиц должно быть больше 0")
     if min_cell_count < 2000:
         errors.append("Минимальное количество клеток не может быть меньше 2000")
+
+    doctor_phone_db, phone_err = normalize_kz_ru_phone(doctor_phone)
+    if phone_err:
+        errors.append(phone_err)
     if optical_diameter is not None and optical_diameter < 6.0:
         errors.append("Оптически ясный диаметр не может быть меньше 6 мм")
     if needed_before and not is_urgent:
@@ -131,7 +136,7 @@ async def create_request(
             needed_before, is_urgent, comments
         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, (
-        user["id"], patient_code, clinic, doctor_name, doctor_email, doctor_phone,
+        user["id"], patient_code, clinic, doctor_name, doctor_email, doctor_phone_db,
         cornea_count, min_cell_count, max_donor_age, max_days_since_death,
         amphoterycin_b, tissue_processing, additional_processing, optical_diameter,
         needed_before if needed_before else None, is_urgent, comments

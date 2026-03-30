@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 from database import get_db, hash_password
+from phone_validation import normalize_kz_ru_phone
 
 router = APIRouter(prefix="/admin")
 templates = Jinja2Templates(directory="templates")
@@ -184,12 +185,16 @@ async def create_user(
     if not user:
         return RedirectResponse(url="/login")
 
+    phone_db, phone_err = normalize_kz_ru_phone(phone)
+    if phone_err:
+        return RedirectResponse(url="/admin/users?error=phone", status_code=303)
+
     conn = get_db()
     try:
         conn.execute("""
             INSERT INTO users (username, password_hash, role, full_name, email, phone, clinic)
             VALUES (?,?,?,?,?,?,?)
-        """, (username, hash_password(password), role, full_name, email, phone, clinic))
+        """, (username, hash_password(password), role, full_name, email, phone_db, clinic))
         conn.commit()
     except Exception:
         pass

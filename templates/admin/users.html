@@ -14,6 +14,9 @@
 {% if request.query_params.get('deleted') %}
 <div class="alert alert-success">Пользователь удалён.</div>
 {% endif %}
+{% if request.query_params.get('error') == 'phone' %}
+<div class="alert alert-error">Некорректный телефон. Укажите номер в формате +7 или 8 и 10 цифр после кода.</div>
+{% endif %}
 
 <div class="two-col-layout">
     <div class="main-col">
@@ -79,7 +82,8 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Телефон</label>
-                    <input type="tel" name="phone" class="form-input">
+                    <input type="tel" name="phone" class="form-input" placeholder="+7 (700) 123-45-67" inputmode="tel" autocomplete="tel">
+                    <span class="form-hint">Пустое поле допустимо; иначе +7 или 8 и 10 цифр.</span>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">Создать</button>
             </form>
